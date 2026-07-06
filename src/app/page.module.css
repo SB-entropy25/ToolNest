@@ -1,142 +1,121 @@
-.page {
-  --background: #fafafa;
-  --foreground: #fff;
-
-  --text-primary: #000;
-  --text-secondary: #666;
-
-  --button-primary-hover: #383838;
-  --button-secondary-hover: #f2f2f2;
-  --button-secondary-border: #ebebeb;
-
+.nestContainer {
+  min-height: 100vh;
   display: flex;
-  flex: 1;
+  flex-direction: column;
+  padding: 2rem 1.25rem;
+  max-width: 1360px;
+  margin: 0 auto;
+  gap: 2rem;
+}
+
+.nestHeader {
+  display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-family: var(--font-geist-sans);
-  background-color: var(--background);
+  text-align: center;
+  gap: 0.35rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1.5rem;
 }
 
-.main {
+.logoArea {
   display: flex;
-  flex: 1;
-  width: 100%;
-  max-width: 800px;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  background-color: var(--foreground);
-  padding: 120px 60px;
+  align-items: center;
+  gap: 0.625rem;
 }
 
-.intro {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-  gap: 24px;
+.logoIcon {
+  color: var(--color-accent-light);
+  filter: drop-shadow(0 0 8px var(--color-accent-glow));
 }
 
-.intro h1 {
-  max-width: 320px;
-  font-size: 40px;
+.logoText {
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
   font-weight: 600;
-  line-height: 48px;
-  letter-spacing: -2.4px;
-  text-wrap: balance;
-  color: var(--text-primary);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-.intro p {
-  max-width: 440px;
-  font-size: 18px;
-  line-height: 32px;
-  text-wrap: balance;
-  color: var(--text-secondary);
+.nestGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  align-items: start;
 }
 
-.intro a {
-  font-weight: 500;
-  color: var(--text-primary);
+@media (min-width: 768px) {
+  .nestGrid {
+    grid-template-columns: 240px 1fr;
+  }
 }
 
-.ctas {
+/* Sidebar navigation */
+.sidebar {
   display: flex;
-  flex-direction: row;
-  width: 100%;
-  max-width: 440px;
-  gap: 16px;
-  font-size: 14px;
+  flex-direction: column;
+  gap: 0.35rem;
+  height: fit-content;
+  padding: 0.85rem;
 }
 
-.ctas a {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 128px;
+.navTitle {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0.25rem 0.5rem 0.75rem 0.5rem;
+}
+
+.tabBtn {
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: transparent;
   border: 1px solid transparent;
-  transition: 0.2s;
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
   cursor: pointer;
-  width: fit-content;
-  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
 }
 
-a.primary {
-  background: var(--text-primary);
-  color: var(--background);
-  gap: 8px;
+.tabBtn:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.03);
 }
 
-a.secondary {
-  border-color: var(--button-secondary-border);
+.tabBtnActive {
+  color: white;
+  background: var(--color-accent);
+  border-color: transparent;
+  box-shadow: 0 4px 15px var(--color-accent-glow);
 }
 
-/* Enable hover only on non-touch devices */
-@media (hover: hover) and (pointer: fine) {
-  a.primary:hover {
-    background: var(--button-primary-hover);
-    border-color: transparent;
-  }
-
-  a.secondary:hover {
-    background: var(--button-secondary-hover);
-    border-color: transparent;
-  }
+.tabBtnDisabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
-@media (max-width: 600px) {
-  .main {
-    padding: 48px 24px;
-  }
-
-  .intro {
-    gap: 16px;
-  }
-
-  .intro h1 {
-    font-size: 32px;
-    line-height: 40px;
-    letter-spacing: -1.92px;
-  }
+.tabBtnDisabled:hover {
+  color: var(--color-text-secondary);
+  background: transparent;
 }
 
-@media (prefers-color-scheme: dark) {
-  .logo {
-    filter: invert();
-  }
-
-  .page {
-    --background: #000;
-    --foreground: #000;
-
-    --text-primary: #ededed;
-    --text-secondary: #999;
-
-    --button-primary-hover: #ccc;
-    --button-secondary-hover: #1a1a1a;
-    --button-secondary-border: #1a1a1a;
-  }
+/* Tool workspace wrapper */
+.toolWorkspace {
+  min-height: 500px;
 }

@@ -1,0 +1,124 @@
+.uploadContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-lg);
+  padding: 3rem 2rem;
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.uploadContainer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+
+.uploadContainer:hover {
+  border-color: var(--color-accent-light);
+  background: rgba(99, 102, 241, 0.03);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);
+  transform: translateY(-2px);
+}
+
+.uploadContainer:hover::before {
+  opacity: 1;
+}
+
+.dragging {
+  border-color: var(--color-success);
+  background: rgba(16, 185, 129, 0.05);
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.15);
+  transform: scale(1.02);
+}
+
+.iconWrapper {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-text-secondary);
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.uploadContainer:hover .iconWrapper {
+  background: var(--color-accent);
+  color: white;
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+  transform: scale(1.1) rotate(5deg);
+}
+
+.dragging .iconWrapper {
+  background: var(--color-success);
+  color: white;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+}
+
+.textGroup {
+  position: relative;
+  z-index: 1;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.fileInput {
+  display: none;
+}
+
+.browseButton {
+  position: relative;
+  z-index: 1;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.uploadContainer:hover .browseButton {
+  background: var(--color-accent);
+  border-color: transparent;
+  box-shadow: var(--shadow-sm);
+}
+
+.errorText {
+  color: var(--color-danger);
+  font-size: 0.875rem;
+  margin-top: 1rem;
+  font-weight: 500;
+}
