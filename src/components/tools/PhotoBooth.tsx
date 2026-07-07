@@ -6,6 +6,7 @@ import ImageUpload from "@/components/ImageUpload";
 import PhotoEditor from "@/components/PhotoEditor";
 import LayoutPreview from "@/components/LayoutPreview";
 import { generatePdf } from "@/utils/pdfGenerator";
+import { track } from "@vercel/analytics";
 import styles from "./PhotoBooth.module.css";
 
 type LayoutType = "classic-grid" | "photo-booth-strips";
@@ -35,6 +36,12 @@ export default function PhotoBooth() {
     setIsGeneratingPdf(true);
     setPdfError(null);
     
+    try {
+      track("Photo Strip Compiled", { layout, theme });
+    } catch (e) {
+      console.error("Tracking error:", e);
+    }
+
     try {
       await generatePdf(croppedImage, layout, theme, bottomText);
     } catch (err) {

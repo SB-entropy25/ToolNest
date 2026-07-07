@@ -13,6 +13,7 @@ import {
   FileText,
   Info
 } from "lucide-react";
+import { track } from "@vercel/analytics";
 import styles from "./PdfCompressor.module.css";
 
 interface PresetItem {
@@ -340,6 +341,12 @@ export default function PdfCompressor() {
 
   const handleDownload = () => {
     if (!compressedBlob || !file) return;
+
+    try {
+      track("PDF Compressed", { preset: activePreset.id, targetLimit: targetSizePreset });
+    } catch (e) {
+      console.error("Tracking error:", e);
+    }
 
     const link = document.createElement("a");
     link.href = URL.createObjectURL(compressedBlob);

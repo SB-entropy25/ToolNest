@@ -15,6 +15,7 @@ import {
   Sparkles,
   Plus
 } from "lucide-react";
+import { track } from "@vercel/analytics";
 import styles from "./PdfMerger.module.css";
 
 export default function PdfMerger() {
@@ -187,6 +188,13 @@ export default function PdfMerger() {
 
   const handleDownload = () => {
     if (!mergedBlob) return;
+
+    try {
+      track("PDF Merged", { count: files.length });
+    } catch (e) {
+      console.error("Tracking error:", e);
+    }
+
     const url = URL.createObjectURL(mergedBlob);
     const a = document.createElement("a");
     a.href = url;

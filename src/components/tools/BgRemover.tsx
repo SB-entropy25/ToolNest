@@ -15,6 +15,7 @@ import {
   Maximize2
 } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
+import { track } from "@vercel/analytics";
 import styles from "./BgRemover.module.css";
 
 type BgType = "transparent" | "color";
@@ -147,6 +148,12 @@ export default function BgRemover() {
   const handleDownload = () => {
     const srcImage = transparentImage || rawImage;
     if (!srcImage) return;
+
+    try {
+      track("Background Removed", { type: bgType, scale });
+    } catch (e) {
+      console.error("Tracking error:", e);
+    }
 
     const img = new Image();
     img.onload = () => {

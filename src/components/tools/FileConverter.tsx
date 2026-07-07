@@ -13,6 +13,7 @@ import {
   Info,
   RefreshCw
 } from "lucide-react";
+import { track } from "@vercel/analytics";
 import styles from "./FileConverter.module.css";
 
 type ConversionMode = "pdf-to-docx" | "docx-to-pdf" | "md-to-pdf";
@@ -2088,6 +2089,12 @@ export default function FileConverter() {
 
   const handleDownload = () => {
     if (!convertedBlob || !file) return;
+
+    try {
+      track("File Converted", { mode });
+    } catch (e) {
+      console.error("Tracking error:", e);
+    }
 
     const extension = mode === "pdf-to-docx" ? ".docx" : ".pdf";
     const newName = file.name.substring(0, file.name.lastIndexOf(".")) + "_converted" + extension;
