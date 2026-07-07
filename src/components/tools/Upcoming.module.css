@@ -181,3 +181,51 @@
     transform: rotate(360deg);
   }
 }
+
+/* Locked & Blurred States */
+.cardLocked {
+  position: relative;
+  overflow: hidden;
+  cursor: not-allowed;
+}
+
+.cardLocked:hover {
+  transform: none !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-color: var(--border-color) !important;
+}
+
+.blurContainer {
+  filter: blur(4px);
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.45;
+}
+
+.lockOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(9, 9, 11, 0.4);
+  z-index: 5;
+  gap: 0.5rem;
+}
+
+.lockText {
+  font-size: 0.775rem;
+  font-weight: 700;
+  color: #f3e5ab; /* Premium pale gold */
+  background: rgba(212, 175, 55, 0.12);
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 10px rgba(212, 175, 55, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}

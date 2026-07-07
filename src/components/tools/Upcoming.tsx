@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Compass, RefreshCw, Layers, TableProperties, Sparkles, QrCode } from "lucide-react";
+import { Compass, RefreshCw, Layers, TableProperties, Sparkles, QrCode, Lock } from "lucide-react";
 import styles from "./Upcoming.module.css";
 
 interface RoadmapItem {
@@ -17,7 +17,7 @@ export default function Upcoming() {
     {
       title: "Local OCR Text Extractor",
       icon: <Sparkles size={22} className={styles.iconBlue} />,
-      description: "Integrate Tesseract.js directly inside your browser. This will allow the File Converter to extract text from scanned PDFs and images, compiling them into editable Word documents entirely locally.",
+      description: "Extract text from scanned PDFs and images locally, compiling them into editable Word (.docx) files.",
       status: "In Research",
       statusColor: "statusYellow",
     },
@@ -55,18 +55,31 @@ export default function Upcoming() {
       </header>
 
       <div className={styles.roadmapGrid}>
-        {items.map((item, index) => (
-          <div key={index} className={styles.card}>
-            <div className={styles.cardHeader}>
-              <div className={styles.iconFrame}>{item.icon}</div>
-              <span className={`${styles.statusBadge} ${styles[item.statusColor]}`}>
-                {item.status}
-              </span>
+        {items.map((item, index) => {
+          const isLocked = index > 0;
+          return (
+            <div key={index} className={`${styles.card} ${isLocked ? styles.cardLocked : ""}`}>
+              <div className={isLocked ? styles.blurContainer : ""}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.iconFrame}>{item.icon}</div>
+                  <span className={`${styles.statusBadge} ${styles[item.statusColor]}`}>
+                    {item.status}
+                  </span>
+                </div>
+                <h3 className={styles.cardTitle}>{item.title}</h3>
+                <p className={styles.cardDesc}>{item.description}</p>
+              </div>
+              {isLocked && (
+                <div className={styles.lockOverlay}>
+                  <span className={styles.lockText}>
+                    <Lock size={12} />
+                    Coming Soon
+                  </span>
+                </div>
+              )}
             </div>
-            <h3 className={styles.cardTitle}>{item.title}</h3>
-            <p className={styles.cardDesc}>{item.description}</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className={styles.infoFooter}>

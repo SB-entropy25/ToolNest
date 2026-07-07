@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { 
   Sparkles, 
   Trash2, 
@@ -12,7 +12,9 @@ import {
   RefreshCw, 
   ArrowRight,
   Palette,
-  Maximize2
+  Maximize2,
+  Undo,
+  Brush
 } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
 import { track } from "@vercel/analytics";
@@ -38,6 +40,17 @@ export default function BgRemover() {
   const [scale, setScale] = useState<number>(100);
   const [lockAspectRatio, setLockAspectRatio] = useState<boolean>(true);
   const [aspectRatio, setAspectRatio] = useState<number>(1);
+
+  // Eraser Brush Options
+  const [isEraserMode, setIsEraserMode] = useState<boolean>(false);
+  const [brushSize, setBrushSize] = useState<number>(30);
+  const [historyStack, setHistoryStack] = useState<ImageData[]>([]);
+  const [canvasCursorPos, setCanvasCursorPos] = useState<{ x: number; y: number } | null>(null);
+  
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const isDrawingRef = useRef<boolean>(false);
+  const lastPointRef = useRef<{ x: number; y: number } | null>(null);
 
   // Predefined solid background color options (Premium Presets)
   const presetColors = [
@@ -99,6 +112,157 @@ export default function BgRemover() {
     }
   };
 
+  // Sync transparent WASM output to editing Canvas
+  useEffect(() => {
+    if (!transparentImage || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const img = new Image();
+    img.onload = () => {
+      // Set canvas logic dimensions matching the high-resolution output exactly
+      canvas.width = img.width;
+      canvas.height = img.height;
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+
+      // Initialize the history stack with the base ImageData state
+      const initialData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      setHistoryStack([initialData]);
+    };
+    img.src = transparentImage;
+  }, [transparentImage]);
+
+  // Pointer interaction coordinates mapping
+  const getCanvasCoords = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    const wrapper = wrapperRef.current;
+    if (!canvas || !wrapper) return null;
+    
+    const canvasRect = canvas.getBoundingClientRect();
+    const wrapperRect = wrapper.getBoundingClientRect();
+    
+    // Map client coordinates to logical high-resolution canvas coordinates
+    const scaleX = canvas.width / canvasRect.width;
+    const scaleY = canvas.height / canvasRect.height;
+    
+    return {
+      x: (e.clientX - canvasRect.left) * scaleX,
+      y: (e.clientY - canvasRect.top) * scaleY,
+      client: {
+        x: e.clientX - wrapperRect.left,
+        y: e.clientY - wrapperRect.top
+      }
+    };
+  };
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!isEraserMode) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    canvas.setPointerCapture(e.pointerId);
+    isDrawingRef.current = true;
+    
+    const coords = getCanvasCoords(e);
+    if (coords) {
+      // Save current canvas state to history stack before stroke
+      const currentData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      setHistoryStack(prev => [...prev.slice(-4), currentData]); // limit history to last 5 states
+
+      ctx.globalCompositeOperation = "destination-out";
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      
+      // Map slider brushSize (which is in CSS pixels) to logical high-resolution pixels
+      const rect = canvas.getBoundingClientRect();
+      const logicalBrushSize = brushSize * (canvas.width / rect.width);
+      ctx.lineWidth = logicalBrushSize;
+
+      ctx.beginPath();
+      ctx.moveTo(coords.x, coords.y);
+      ctx.lineTo(coords.x, coords.y);
+      ctx.stroke();
+
+      lastPointRef.current = { x: coords.x, y: coords.y };
+    }
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const coords = getCanvasCoords(e);
+    if (coords) {
+      setCanvasCursorPos(coords.client);
+    } else {
+      setCanvasCursorPos(null);
+    }
+
+    if (!isDrawingRef.current || !isEraserMode) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx || !coords || !lastPointRef.current) return;
+
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    const rect = canvas.getBoundingClientRect();
+    const logicalBrushSize = brushSize * (canvas.width / rect.width);
+    ctx.lineWidth = logicalBrushSize;
+
+    ctx.beginPath();
+    ctx.moveTo(lastPointRef.current.x, lastPointRef.current.y);
+    ctx.lineTo(coords.x, coords.y);
+    ctx.stroke();
+
+    lastPointRef.current = { x: coords.x, y: coords.y };
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (isDrawingRef.current) {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        canvas.releasePointerCapture(e.pointerId);
+      }
+      isDrawingRef.current = false;
+      lastPointRef.current = null;
+    }
+  };
+
+  const handlePointerLeave = () => {
+    setCanvasCursorPos(null);
+    isDrawingRef.current = false;
+    lastPointRef.current = null;
+  };
+
+  const handleUndo = () => {
+    if (historyStack.length <= 1) return; // Keep the original state
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+
+    const prevStates = [...historyStack];
+    prevStates.pop(); // Pop current state
+    setHistoryStack(prevStates);
+
+    const stateToRestore = prevStates[prevStates.length - 1];
+    ctx.putImageData(stateToRestore, 0, 0);
+  };
+
+  const handleResetEraser = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx || historyStack.length === 0) return;
+
+    const originalData = historyStack[0];
+    ctx.putImageData(originalData, 0, 0);
+    setHistoryStack([originalData]);
+  };
+
   // Dimension Handlers
   const handleWidthChange = (w: number) => {
     if (w <= 0) return;
@@ -146,7 +310,7 @@ export default function BgRemover() {
 
   // Compile output and download
   const handleDownload = () => {
-    const srcImage = transparentImage || rawImage;
+    const srcImage = canvasRef.current ? canvasRef.current.toDataURL() : transparentImage || rawImage;
     if (!srcImage) return;
 
     try {
@@ -176,7 +340,7 @@ export default function BgRemover() {
       const link = document.createElement("a");
       const ext = bgType === "transparent" ? "png" : "jpeg";
       link.href = canvas.toDataURL(`image/${ext}`, 0.95);
-      link.download = `toolnest_bg_removed_${Date.now()}.${ext}`;
+      link.download = `toolnest_smart_bg_removed_${Date.now()}.${ext}`;
       link.click();
     };
     img.src = srcImage;
@@ -230,7 +394,43 @@ export default function BgRemover() {
                     style={{ backgroundColor: bgType === "color" ? bgColor : "transparent" }}
                   >
                     {transparentImage ? (
-                      <img src={transparentImage} alt="Transparency background outcome" className={styles.previewImage} />
+                      <div ref={wrapperRef} style={{ position: "relative", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                        <canvas
+                          ref={canvasRef}
+                          className={styles.previewImage}
+                          style={{
+                            cursor: isEraserMode ? "none" : "default",
+                            transform: `scale(${scale / 100})`,
+                            transformOrigin: "center",
+                            maxWidth: "100%",
+                            maxHeight: "100%",
+                            objectFit: "contain",
+                            touchAction: "none"
+                          }}
+                          onPointerDown={handlePointerDown}
+                          onPointerMove={handlePointerMove}
+                          onPointerUp={handlePointerUp}
+                          onPointerLeave={handlePointerLeave}
+                        />
+                        {isEraserMode && canvasCursorPos && (
+                          <div 
+                            style={{
+                              position: "absolute",
+                              left: `${canvasCursorPos.x}px`,
+                              top: `${canvasCursorPos.y}px`,
+                              width: `${brushSize}px`,
+                              height: `${brushSize}px`,
+                              borderRadius: "50%",
+                              border: "2px solid rgba(255, 255, 255, 0.85)",
+                              boxShadow: "0 0 5px rgba(0, 0, 0, 0.6)",
+                              pointerEvents: "none",
+                              transform: "translate(-50%, -50%)",
+                              zIndex: 10,
+                              backgroundColor: "rgba(255, 255, 255, 0.15)"
+                            }}
+                          />
+                        )}
+                      </div>
                     ) : (
                       !isLoading && !error && <div style={{ color: "var(--color-text-muted)", fontSize: "0.85rem" }}>Awaiting process...</div>
                     )}
@@ -269,6 +469,91 @@ export default function BgRemover() {
             </div>
 
             <div className={styles.panelBody} style={{ padding: 0 }}>
+              {/* Option: Eraser Brush Tool (Touch up) */}
+              {transparentImage && (
+                <div className={styles.optionGroup}>
+                  <h4 className={styles.optionTitle}>
+                    <Brush size={16} className="text-indigo-400" />
+                    Manual Background Touch-up
+                  </h4>
+                  
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <button
+                        type="button"
+                        className={`${styles.typeBtn} ${isEraserMode ? styles.typeBtnActive : ""}`}
+                        onClick={() => setIsEraserMode(true)}
+                        style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", flex: 1 }}
+                      >
+                        <Brush size={14} />
+                        Eraser Brush ON
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.typeBtn} ${!isEraserMode ? styles.typeBtnActive : ""}`}
+                        onClick={() => {
+                          setIsEraserMode(false);
+                          setCanvasCursorPos(null);
+                        }}
+                        style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", flex: 1 }}
+                      >
+                        <span>Standard Cursor</span>
+                      </button>
+                    </div>
+
+                    {isEraserMode && (
+                      <div className={styles.customColorField} style={{ marginTop: "0.25rem" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <label style={{ fontSize: "0.75rem", color: "var(--color-text-secondary)", fontWeight: "500" }}>
+                            Brush Size: <strong>{brushSize}px</strong>
+                          </label>
+                        </div>
+                        <input
+                          type="range"
+                          min="10"
+                          max="80"
+                          value={brushSize}
+                          onChange={(e) => setBrushSize(parseInt(e.target.value))}
+                          style={{
+                            width: "100%",
+                            height: "6px",
+                            background: "rgba(255, 255, 255, 0.15)",
+                            borderRadius: "3px",
+                            outline: "none",
+                            appearance: "none",
+                            cursor: "pointer",
+                            marginTop: "0.5rem"
+                          }}
+                        />
+                      </div>
+                    )}
+
+                    <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.25rem" }}>
+                      <button
+                        type="button"
+                        className={styles.secondaryBtn}
+                        onClick={handleUndo}
+                        disabled={historyStack.length <= 1}
+                        style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.35rem", flex: 1, padding: "0.5rem", fontSize: "0.75rem" }}
+                      >
+                        <Undo size={12} />
+                        Undo Stroke ({Math.max(0, historyStack.length - 1)})
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.secondaryBtn}
+                        onClick={handleResetEraser}
+                        disabled={historyStack.length <= 1}
+                        style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.35rem", flex: 1, padding: "0.5rem", fontSize: "0.75rem", borderColor: "rgba(239, 68, 68, 0.2)", color: "var(--color-danger)" }}
+                      >
+                        <RefreshCw size={12} />
+                        Restore Original
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Option A: Background fills */}
               <div className={styles.optionGroup}>
                 <h4 className={styles.optionTitle}>

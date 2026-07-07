@@ -36,21 +36,21 @@ export default function PdfCompressor() {
     {
       id: "low",
       name: "Low Compression (Max Text Quality)",
-      desc: "Renders at 2.5x high-DPI resolution. Best for official files, vector text, and fine prints.",
+      desc: "High-DPI resolution, best for text quality.",
       scale: 2.5,
       quality: 0.90,
     },
     {
       id: "recommended",
       name: "Recommended (Balanced Quality & Size)",
-      desc: "Renders at 2.0x DPI. Retains sharp text and clear graphics with good size compression.",
+      desc: "Balanced quality with good size compression.",
       scale: 2.0,
       quality: 0.76,
     },
     {
       id: "high",
       name: "High Compression (Small Size)",
-      desc: "Renders at 1.4x DPI. Maximum file size reduction, text remains readable but slightly softer.",
+      desc: "Maximum compression, smaller file size.",
       scale: 1.4,
       quality: 0.60,
     },
@@ -627,20 +627,12 @@ export default function PdfCompressor() {
                     <span className={styles.presetDesc}>
                       Auto-tuned rendering resolution to <strong>{Math.round(targetScale * 100)}%</strong> and JPEG quality to <strong>{Math.round(targetQuality * 100)}%</strong> to fit under your {formattedLimitString} limit.
                     </span>
-                    <span style={{ fontSize: "0.75rem", color: "var(--color-success)", fontWeight: "600", marginTop: "0.25rem" }}>
-                      Expected Output Size: ~{formatBytes(estimateCompressedSizeCustom(file.size, totalPages, targetScale, targetQuality))} (Saves ~{Math.max(0, Math.round(((file.size - estimateCompressedSizeCustom(file.size, totalPages, targetScale, targetQuality)) / file.size) * 100))}% size)
-                    </span>
                   </div>
                 </div>
               ) : (
                 /* Normal Preset Grid */
                 <div className={styles.presetGrid}>
                   {presets.map((preset) => {
-                    const estSize = estimateCompressedSizeCustom(file ? file.size : 0, totalPages, preset.scale, preset.quality);
-                    const estSavings = file && estSize > 0 
-                      ? Math.max(0, Math.round(((file.size - estSize) / file.size) * 100)) 
-                      : 0;
-
                     return (
                       <button
                         key={preset.id}
@@ -665,14 +657,8 @@ export default function PdfCompressor() {
                         <div className={styles.presetInfo}>
                           <span className={styles.presetName}>
                             {preset.name}
-                            {preset.id === "recommended" && " (Recommended)"}
                           </span>
                           <span className={styles.presetDesc}>{preset.desc}</span>
-                          {file && totalPages > 0 && (
-                            <span style={{ fontSize: "0.75rem", color: "var(--color-accent-light)", fontWeight: "600", marginTop: "0.25rem" }}>
-                              Expected Output Size: ~{formatBytes(estSize)} ({estSavings > 0 ? `Saves ~${estSavings}%` : "No savings"})
-                            </span>
-                          )}
                         </div>
                       </button>
                     );

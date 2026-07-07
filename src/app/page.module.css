@@ -119,3 +119,21 @@
 .toolWorkspace {
   min-height: 500px;
 }
+
+/* Most Used Feature Styles */
+.mostUsedTab {
+  border: 1px solid rgba(212, 175, 55, 0.25) !important;
+  background: rgba(212, 175, 55, 0.01) !important;
+}
+
+.mostUsedTab:hover {
+  background: rgba(212, 175, 55, 0.04) !important;
+  border-color: rgba(212, 175, 55, 0.45) !important;
+}
+
+.mostUsedTabActive {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(99, 102, 241, 0.18) 100%) !important;
+  border-color: rgba(212, 175, 55, 0.6) !important;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.15) !important;
+  color: white !important;
+}

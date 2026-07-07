@@ -391,15 +391,14 @@
   visibility: hidden;
   position: absolute;
   bottom: 125%;
-  left: 50%;
-  transform: translateX(-50%);
+  right: -8px;
   background: rgba(15, 23, 42, 0.96);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--color-text-secondary);
   padding: 0.75rem 1rem;
   border-radius: var(--radius-md);
   font-size: 0.75rem;
-  width: 260px;
+  width: 250px;
   line-height: 1.4;
   box-shadow: var(--shadow-lg);
   backdrop-filter: blur(8px);
@@ -419,8 +418,7 @@
   content: "";
   position: absolute;
   top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  right: 12px;
   border-width: 5px;
   border-style: solid;
   border-color: rgba(15, 23, 42, 0.96) transparent transparent transparent;

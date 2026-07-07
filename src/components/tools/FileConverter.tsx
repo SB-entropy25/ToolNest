@@ -2337,12 +2337,12 @@ export default function FileConverter() {
                 <span className={styles.tooltipContainer}>
                   <Info size={16} style={{ color: "var(--color-accent-light)", cursor: "help" }} />
                   <span className={styles.tooltipBox}>
-                    <span className={styles.tooltipTitle}>⚠️ Client-Side Font Mapping</span>
-                    Because the browser cannot access local system files (like C:\Windows\Fonts) for privacy and sandbox reasons, custom fonts are mapped to the closest standard printable typeface class:
+                    <span className={styles.tooltipTitle}>ℹ️ Client-Side Font Mapping</span>
+                    For security, browsers cannot access local system fonts. Custom fonts are mapped to the closest standard types:
                     <ul style={{ margin: "0.5rem 0 0 1rem", padding: 0, listStyle: "disc", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-                      <li><strong>Serif (Algerian, Georgia)</strong> maps to Times.</li>
-                      <li><strong>Sans-Serif (Calibri, Arial)</strong> maps to Helvetica.</li>
-                      <li><strong>Monospace (Consolas)</strong> maps to Courier.</li>
+                      <li><strong>Serif (Georgia, etc.)</strong> &rarr; Times</li>
+                      <li><strong>Sans-Serif (Arial, etc.)</strong> &rarr; Helvetica</li>
+                      <li><strong>Monospace (Consolas)</strong> &rarr; Courier</li>
                     </ul>
                   </span>
                 </span>

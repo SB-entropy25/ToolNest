@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
+import HubLayout from "@/components/HubLayout";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ToolNest | Daily Hack Resolutions",
+  title: "ToolNest Smart | Daily Productivity Tools",
   description: "A private, high-performance suite of daily utility tools. Includes background removal, photo resizing, print-ready PDF compilers, and more. Processed entirely locally on your device.",
 };
 
@@ -26,7 +27,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
-        {children}
+        <HubLayout>
+          {children}
+        </HubLayout>
         <Analytics />
       </body>
     </html>
