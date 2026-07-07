@@ -1,16 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
-import { Boxes, Camera, FileUp, Settings, Scissors, FileDown, Info, Calendar } from "lucide-react";
+import { Boxes, Camera, FileUp, Settings, Scissors, FileDown, Info, Calendar, Layers } from "lucide-react";
 import PhotoBooth from "@/components/tools/PhotoBooth";
 import BgRemover from "@/components/tools/BgRemover";
 import PdfCompressor from "@/components/tools/PdfCompressor";
 import FileConverter from "@/components/tools/FileConverter";
+import PdfMerger from "@/components/tools/PdfMerger";
 import About from "@/components/tools/About";
 import Upcoming from "@/components/tools/Upcoming";
 import styles from "./page.module.css";
 
-type ToolType = "photo-booth" | "bg-remover" | "pdf-compressor" | "converter" | "about" | "upcoming";
+type ToolType = "photo-booth" | "bg-remover" | "pdf-compressor" | "converter" | "pdf-merger" | "about" | "upcoming";
 
 interface ToolItem {
   id: ToolType;
@@ -42,6 +43,11 @@ export default function Home() {
       id: "converter",
       name: "File Converter",
       icon: <FileUp size={18} />,
+    },
+    {
+      id: "pdf-merger",
+      name: "PDF Merger",
+      icon: <Layers size={18} />,
     },
     {
       id: "about",
@@ -128,6 +134,7 @@ export default function Home() {
           {activeTool === "bg-remover" && <BgRemover />}
           {activeTool === "pdf-compressor" && <PdfCompressor />}
           {activeTool === "converter" && <FileConverter />}
+          {activeTool === "pdf-merger" && <PdfMerger />}
           {activeTool === "about" && <About />}
           {activeTool === "upcoming" && <Upcoming />}
         </div>

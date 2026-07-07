@@ -34,24 +34,24 @@ export default function PdfCompressor() {
   const presets: PresetItem[] = [
     {
       id: "low",
-      name: "Low Compression (High Image Quality)",
-      desc: "Keeps images extremely crisp and detailed. Best for presentation files.",
-      scale: 1.5,
-      quality: 0.92,
+      name: "Low Compression (Max Text Quality)",
+      desc: "Renders at 2.5x high-DPI resolution. Best for official files, vector text, and fine prints.",
+      scale: 2.5,
+      quality: 0.90,
     },
     {
       id: "recommended",
       name: "Recommended (Balanced Quality & Size)",
-      desc: "Retains clear text and graphics with good compression.",
-      scale: 1.2,
-      quality: 0.82,
+      desc: "Renders at 2.0x DPI. Retains sharp text and clear graphics with good size compression.",
+      scale: 2.0,
+      quality: 0.76,
     },
     {
       id: "high",
-      name: "High Compression (Low Quality)",
-      desc: "Maximum file size reduction, text remains readable but slightly soft.",
-      scale: 0.8,
-      quality: 0.62,
+      name: "High Compression (Small Size)",
+      desc: "Renders at 1.4x DPI. Maximum file size reduction, text remains readable but slightly softer.",
+      scale: 1.4,
+      quality: 0.60,
     },
   ];
 
@@ -76,25 +76,12 @@ export default function PdfCompressor() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
-  // Helper: Estimate compressed size based on page counts and file type
   // Helper: Estimate compressed size based on specific scale and quality
   const estimateCompressedSizeCustom = (origSize: number, pagesCount: number, scaleVal: number, qualityVal: number): number => {
-    if (pagesCount <= 0 || origSize <= 0) return 0;
-    const sizePerPage = origSize / pagesCount;
-    
-    // Determine base compression factor based on page density
-    const baseFactor = sizePerPage > 500000 ? 0.16 : 0.65;
-    
-    // Calculate scaling ratio
-    let ratio = (scaleVal * scaleVal) * qualityVal * baseFactor;
-    
-    if (ratio > 0.95) ratio = 0.95;
-    if (ratio < 0.05) ratio = 0.05;
-    
-    let estimated = Math.round(origSize * ratio);
-    if (estimated >= origSize) {
-      estimated = Math.round(origSize * 0.92);
-    }
+    if (pagesCount <= 0) return 0;
+    // Calibrated empirical formula for standard document JPEG page size in bytes
+    const expectedSizePerPage = 55000 * (scaleVal * scaleVal) * (qualityVal * qualityVal);
+    const estimated = Math.round(pagesCount * expectedSizePerPage);
     return estimated;
   };
 
@@ -120,31 +107,82 @@ export default function PdfCompressor() {
   }
 
   // Calculate dynamic target parameters
-  let targetScale = 1.2;
-  let targetQuality = 0.82;
+  let targetScale = 2.0;
+  let targetQuality = 0.76;
   let hasTargetWarning = false;
   let hasTargetNotice = false;
 
   if (targetSizeLimit > 0 && file && totalPages > 0) {
-    const sizePerPage = file.size / totalPages;
-    const baseFactor = sizePerPage > 500000 ? 0.16 : 0.65;
-    const targetRatio = targetSizeLimit / file.size;
-    const neededRatio = targetRatio / baseFactor;
-
-    if (neededRatio >= 2.1) {
-      // Limit is very generous, we can use maximum quality parameters
-      targetScale = 1.5;
-      targetQuality = 0.95;
-      hasTargetNotice = true;
-    } else {
-      // Solve for scale and quality to fit target
-      targetScale = Math.max(0.5, Math.min(1.5, parseFloat(Math.sqrt(neededRatio / 0.92).toFixed(2))));
-      targetQuality = Math.max(0.4, Math.min(0.92, parseFloat((neededRatio / (targetScale * targetScale)).toFixed(2))));
+    const targetSizePerPage = targetSizeLimit / totalPages;
+    
+    // We want to maximize resolution scale for text readability while solving for quality.
+    // We sweep scale from 2.5 down to 1.2 to find the sharpest settings that fit the target.
+    let bestScale = 1.4;
+    let bestQuality = 0.60;
+    let bestDiff = Infinity;
+    
+    for (let s = 2.5; s >= 1.2; s -= 0.1) {
+      // expectedSizePerPage = 55000 * s * s * q * q
+      // => q = Math.sqrt(expectedSizePerPage / (55000 * s * s))
+      let q = Math.sqrt(targetSizePerPage / (55000 * s * s));
       
-      // If we are forced to minimum scale and quality and it still exceeds limit
-      if (targetScale <= 0.5 && targetQuality <= 0.4) {
-        hasTargetWarning = true;
+      // Keep quality within reasonable boundaries for document readability
+      q = Math.max(0.50, Math.min(0.90, q));
+      
+      const expected = 55000 * s * s * q * q;
+      const diff = Math.abs(expected - targetSizePerPage);
+      
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        bestScale = parseFloat(s.toFixed(2));
+        bestQuality = parseFloat(q.toFixed(2));
       }
+    }
+    
+    targetScale = bestScale;
+    targetQuality = bestQuality;
+
+    // Check if the final output size exceeds the limit even at lowest settings
+    const minPossibleSize = 55000 * (1.2 * 1.2) * (0.5 * 0.5) * totalPages;
+    if (minPossibleSize > targetSizeLimit) {
+      hasTargetWarning = true;
+    }
+  }
+
+  // Determine actual S and Q settings to use based on targets and self-tuning constraints:
+  let compScale = activePreset.scale;
+  let compQuality = activePreset.quality;
+
+  if (targetSizeLimit > 0 && file && totalPages > 0) {
+    compScale = targetScale;
+    compQuality = targetQuality;
+  } else if (file && totalPages > 0) {
+    // Self-tuning logic: target at least 20% size savings (max budget = 0.8 * file.size)
+    const maxBudget = 0.8 * file.size;
+    const budgetPerPage = maxBudget / totalPages;
+    const expectedPerPage = 55000 * compScale * compScale * compQuality * compQuality;
+
+    if (expectedPerPage > budgetPerPage) {
+      let bestScale = 1.2;
+      let bestQuality = 0.60;
+      let bestDiff = Infinity;
+      
+      for (let s = activePreset.scale; s >= 1.0; s -= 0.1) {
+        let q = Math.sqrt(budgetPerPage / (55000 * s * s));
+        q = Math.max(0.45, Math.min(activePreset.quality, q));
+        
+        const expected = 55000 * s * s * q * q;
+        if (expected <= budgetPerPage) {
+          const diff = budgetPerPage - expected;
+          if (diff < bestDiff) {
+            bestDiff = diff;
+            bestScale = parseFloat(s.toFixed(2));
+            bestQuality = parseFloat(q.toFixed(2));
+          }
+        }
+      }
+      compScale = bestScale;
+      compQuality = bestQuality;
     }
   }
 
@@ -246,10 +284,8 @@ export default function PdfCompressor() {
       const doc = new jsPDF({
         orientation: "portrait",
         unit: "px",
+        compress: true // Enables FlateDecode compression for internal structures
       });
-
-      const compScale = targetSizeLimit > 0 ? targetScale : activePreset.scale;
-      const compQuality = targetSizeLimit > 0 ? targetQuality : activePreset.quality;
 
       // Sequential page rendering loops
       for (let i = 1; i <= numPages; i++) {
@@ -271,8 +307,11 @@ export default function PdfCompressor() {
           viewport: viewport,
         }).promise;
 
-        // Compress canvas drawing to high-quality JPEG
-        const imgData = canvas.toDataURL("image/jpeg", compQuality);
+        // Convert page canvas to binary JPEG Uint8Array bytes
+        const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", compQuality));
+        if (!blob) throw new Error("Failed to export page canvas to image blob.");
+        const buffer = await blob.arrayBuffer();
+        const uint8 = new Uint8Array(buffer);
 
         const pageOrientation = viewport.width > viewport.height ? "l" : "p";
         if (i > 1) {
@@ -284,7 +323,7 @@ export default function PdfCompressor() {
         }
 
         doc.setPage(i);
-        doc.addImage(imgData, "JPEG", 0, 0, viewport.width, viewport.height);
+        doc.addImage(uint8, "JPEG", 0, 0, viewport.width, viewport.height, undefined, "FAST");
       }
 
       // Output compressed Blob
@@ -320,14 +359,16 @@ export default function PdfCompressor() {
   };
 
   // Calculations for savings
+  const expectedOutputSize = file && totalPages > 0
+    ? estimateCompressedSizeCustom(file.size, totalPages, compScale, compQuality)
+    : 0;
+
   const sizeSavings = file && compressedSize > 0 
     ? Math.max(0, Math.round(((file.size - compressedSize) / file.size) * 100)) 
     : 0;
 
-  // Active expected size calculation
-  const activeExpectedSize = activePreset.id === "low" ? lowEst : activePreset.id === "recommended" ? recEst : highEst;
-  const expectedSavings = file && activeExpectedSize > 0 
-    ? Math.max(0, Math.round(((file.size - activeExpectedSize) / file.size) * 100))
+  const expectedSavings = file && expectedOutputSize > 0 
+    ? Math.max(0, Math.round(((file.size - expectedOutputSize) / file.size) * 100))
     : 0;
 
   // Formatting target size limit for warnings
@@ -545,6 +586,25 @@ export default function PdfCompressor() {
             {/* Profiles & Expected Size */}
             <div className={styles.optionGroup}>
               <h4 className={styles.optionTitle}>Select Compression Profile</h4>
+              
+              {file && expectedOutputSize > file.size && (
+                <div style={{
+                  background: "rgba(245, 158, 11, 0.08)",
+                  border: "1px solid rgba(245, 158, 11, 0.25)",
+                  color: "#fbbf24",
+                  padding: "0.65rem 0.85rem",
+                  borderRadius: "var(--radius-sm)",
+                  fontSize: "0.75rem",
+                  display: "flex",
+                  gap: "0.5rem",
+                  alignItems: "center",
+                  lineHeight: "1.4",
+                  marginBottom: "0.75rem"
+                }}>
+                  <AlertTriangle size={14} style={{ flexShrink: 0 }} />
+                  <span>This document contains vector text. Compressing it will flatten text to images, which may increase file size.</span>
+                </div>
+              )}
               
               {targetSizeLimit > 0 && file && totalPages > 0 ? (
                 /* Target-Optimized Profile Card */
