@@ -147,9 +147,20 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
                 color: "var(--color-text-muted)",
                 display: "block",
                 fontWeight: "500",
+                marginBottom: "0.25rem",
               }}
             >
               🔒 100% Local Processing
+            </span>
+            <span
+              style={{
+                fontSize: "0.65rem",
+                color: "rgba(255, 255, 255, 0.35)",
+                display: "block",
+                fontWeight: "400",
+              }}
+            >
+              Made by Srijan Bhushan
             </span>
           </div>
         </aside>

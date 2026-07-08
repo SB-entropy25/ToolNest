@@ -141,6 +141,7 @@ export default function About() {
 
       <footer className={styles.aboutFooter}>
         <p>Designed with absolute transparency for students and basic daily purpose use.</p>
+        <p style={{ marginTop: "0.4rem", opacity: 0.5, fontSize: "0.75rem" }}>Made by Srijan Bhushan</p>
       </footer>
     </div>
   );
