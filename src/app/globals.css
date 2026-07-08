@@ -3,27 +3,27 @@
   --font-mono: var(--font-geist-mono), monospace;
 
   /* Theme variables - Premium Dark Mode by default */
-  --bg-base: #09090b;
-  --bg-surface: rgba(20, 20, 25, 0.7);
-  --bg-surface-hover: rgba(30, 30, 38, 0.85);
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-glow: rgba(99, 102, 241, 0.15);
+  --bg-base: #0a0e17;
+  --bg-surface: rgba(18, 24, 38, 0.75);
+  --bg-surface-hover: rgba(26, 34, 54, 0.9);
+  --border-color: rgba(255, 255, 255, 0.06);
+  --border-glow: rgba(99, 102, 241, 0.12);
   
-  --color-text-primary: #f4f4f5;
-  --color-text-secondary: #a1a1aa;
-  --color-text-muted: #71717a;
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
 
   /* Primary Accent: Indigo/Violet Gradient */
   --color-accent: #6366f1;
   --color-accent-light: #818cf8;
-  --color-accent-glow: rgba(99, 102, 241, 0.4);
+  --color-accent-glow: rgba(99, 102, 241, 0.35);
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
 
-  --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 8px 30px -4px rgba(0, 0, 0, 0.6);
-  --shadow-lg: 0 16px 40px -10px rgba(0, 0, 0, 0.8), 0 0 40px -5px rgba(99, 102, 241, 0.1);
+  --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 30px -4px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 40px -10px rgba(0, 0, 0, 0.7), 0 0 40px -5px rgba(99, 102, 241, 0.08);
   --backdrop-blur: blur(12px);
 
   --radius-sm: 8px;
@@ -49,7 +49,7 @@ html {
 
 body {
   min-height: 100%;
-  background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #09090b 70%);
+  background: #0a0e17;
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

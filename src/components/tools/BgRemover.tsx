@@ -14,7 +14,8 @@ import {
   Palette,
   Maximize2,
   Undo,
-  Brush
+  Brush,
+  ShieldAlert
 } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
 import { track } from "@vercel/analytics";
@@ -362,6 +363,21 @@ export default function BgRemover() {
             Remove backgrounds from photos and resize assets for pitch decks and slides.
           </p>
         </div>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "0.5rem",
+          background: "rgba(16, 185, 129, 0.08)",
+          border: "1px solid rgba(16, 185, 129, 0.15)",
+          color: "var(--color-success)",
+          padding: "0.4rem 0.8rem",
+          borderRadius: "9999px",
+          fontSize: "0.8rem",
+          fontWeight: "500"
+        }}>
+          <ShieldAlert size={14} />
+          <span>Processed 100% locally</span>
+        </div>
       </div>
 
       {/* Main workspace */}
@@ -510,7 +526,7 @@ export default function BgRemover() {
                         </div>
                         <input
                           type="range"
-                          min="10"
+                          min="1"
                           max="80"
                           value={brushSize}
                           onChange={(e) => setBrushSize(parseInt(e.target.value))}

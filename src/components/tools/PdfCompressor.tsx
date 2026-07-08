@@ -30,26 +30,27 @@ export default function PdfCompressor() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [progressPage, setProgressPage] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(0);
+  const [nativeMaxDim, setNativeMaxDim] = useState<number>(792);
 
   // Compression presets
   const presets: PresetItem[] = [
     {
       id: "low",
-      name: "Low Compression (Max Text Quality)",
+      name: "Low Compression",
       desc: "High-DPI resolution, best for text quality.",
       scale: 2.5,
       quality: 0.90,
     },
     {
       id: "recommended",
-      name: "Recommended (Balanced Quality & Size)",
+      name: "Recommended",
       desc: "Balanced quality with good size compression.",
       scale: 2.0,
       quality: 0.76,
     },
     {
       id: "high",
-      name: "High Compression (Small Size)",
+      name: "High Compression",
       desc: "Maximum compression, smaller file size.",
       scale: 1.4,
       quality: 0.60,
@@ -78,24 +79,34 @@ export default function PdfCompressor() {
   };
 
   // Helper: Estimate compressed size based on specific scale and quality
-  const estimateCompressedSizeCustom = (origSize: number, pagesCount: number, scaleVal: number, qualityVal: number): number => {
+  const estimateCompressedSizeCustom = (pagesCount: number, maxDim: number, qualityVal: number): number => {
     if (pagesCount <= 0) return 0;
-    // Calibrated empirical formula for standard document JPEG page size in bytes
-    const expectedSizePerPage = 55000 * (scaleVal * scaleVal) * (qualityVal * qualityVal);
-    const estimated = Math.round(pagesCount * expectedSizePerPage);
-    return estimated;
+    // Calibrated empirical square-law formula: size = 0.035 * maxDim^2 * qualityVal^2
+    const expectedSizePerPage = 0.035 * (maxDim * maxDim) * (qualityVal * qualityVal);
+    return Math.round(pagesCount * expectedSizePerPage);
   };
 
-  // Helper: Estimate compressed size based on page counts and preset
-  const estimateCompressedSize = (origSize: number, pagesCount: number, presetId: string): number => {
-    const preset = presetId === "low" ? presets[0] : presetId === "recommended" ? presets[1] : presets[2];
-    return estimateCompressedSizeCustom(origSize, pagesCount, preset.scale, preset.quality);
+  const getPresetConfig = (presetId: string, maxDim: number) => {
+    let cap = 1300;
+    let q = 0.72;
+    if (presetId === "low") {
+      cap = 1800;
+      q = 0.85;
+    } else if (presetId === "high") {
+      cap = 850;
+      q = 0.50;
+    }
+    const targetMax = Math.min(maxDim, cap);
+    return { maxDim: targetMax, quality: q };
   };
 
-  // Calculate sizes for active presets
-  const lowEst = file ? estimateCompressedSize(file.size, totalPages, "low") : 0;
-  const recEst = file ? estimateCompressedSize(file.size, totalPages, "recommended") : 0;
-  const highEst = file ? estimateCompressedSize(file.size, totalPages, "high") : 0;
+  const lowConfig = getPresetConfig("low", nativeMaxDim);
+  const recConfig = getPresetConfig("recommended", nativeMaxDim);
+  const highConfig = getPresetConfig("high", nativeMaxDim);
+
+  const lowEst = file ? estimateCompressedSizeCustom(totalPages, lowConfig.maxDim, lowConfig.quality) : 0;
+  const recEst = file ? estimateCompressedSizeCustom(totalPages, recConfig.maxDim, recConfig.quality) : 0;
+  const highEst = file ? estimateCompressedSizeCustom(totalPages, highConfig.maxDim, highConfig.quality) : 0;
 
   // Convert currently configured target size limit to bytes
   let targetSizeLimit = 0;
@@ -108,84 +119,83 @@ export default function PdfCompressor() {
   }
 
   // Calculate dynamic target parameters
-  let targetScale = 2.0;
-  let targetQuality = 0.76;
+  let targetMaxDim = nativeMaxDim;
+  let targetQuality = 0.72;
   let hasTargetWarning = false;
-  let hasTargetNotice = false;
+  const hasTargetNotice = file && targetSizeLimit > 0 && file.size <= targetSizeLimit;
 
   if (targetSizeLimit > 0 && file && totalPages > 0) {
     const targetSizePerPage = targetSizeLimit / totalPages;
     
-    // We want to maximize resolution scale for text readability while solving for quality.
-    // We sweep scale from 2.5 down to 1.2 to find the sharpest settings that fit the target.
-    let bestScale = 1.4;
-    let bestQuality = 0.60;
+    let bestMaxDim = Math.min(nativeMaxDim, 1400);
+    let bestQuality = 0.65;
     let bestDiff = Infinity;
     
-    for (let s = 2.5; s >= 1.2; s -= 0.1) {
-      // expectedSizePerPage = 55000 * s * s * q * q
-      // => q = Math.sqrt(expectedSizePerPage / (55000 * s * s))
-      let q = Math.sqrt(targetSizePerPage / (55000 * s * s));
+    // Sweep max dimension from 2000 down to 400
+    for (let d = Math.min(nativeMaxDim, 2000); d >= 400; d -= 50) {
+      let q = Math.sqrt(targetSizePerPage / (0.035 * d * d));
+      q = Math.max(0.40, Math.min(0.85, q));
       
-      // Keep quality within reasonable boundaries for document readability
-      q = Math.max(0.50, Math.min(0.90, q));
-      
-      const expected = 55000 * s * s * q * q;
+      const expected = 0.035 * d * d * q * q;
       const diff = Math.abs(expected - targetSizePerPage);
       
       if (diff < bestDiff) {
         bestDiff = diff;
-        bestScale = parseFloat(s.toFixed(2));
+        bestMaxDim = d;
         bestQuality = parseFloat(q.toFixed(2));
       }
     }
     
-    targetScale = bestScale;
+    targetMaxDim = bestMaxDim;
     targetQuality = bestQuality;
 
     // Check if the final output size exceeds the limit even at lowest settings
-    const minPossibleSize = 55000 * (1.2 * 1.2) * (0.5 * 0.5) * totalPages;
+    const minPossibleSize = estimateCompressedSizeCustom(totalPages, 400, 0.40);
     if (minPossibleSize > targetSizeLimit) {
       hasTargetWarning = true;
     }
   }
 
-  // Determine actual S and Q settings to use based on targets and self-tuning constraints:
-  let compScale = activePreset.scale;
-  let compQuality = activePreset.quality;
+  // Determine actual settings to use based on active preset and self-tuning constraints:
+  const activeConfig = getPresetConfig(activePreset.id, nativeMaxDim);
+  let compMaxDim = activeConfig.maxDim;
+  let compQuality = activeConfig.quality;
 
   if (targetSizeLimit > 0 && file && totalPages > 0) {
-    compScale = targetScale;
+    compMaxDim = targetMaxDim;
     compQuality = targetQuality;
   } else if (file && totalPages > 0) {
     // Self-tuning logic: target at least 20% size savings (max budget = 0.8 * file.size)
     const maxBudget = 0.8 * file.size;
     const budgetPerPage = maxBudget / totalPages;
-    const expectedPerPage = 55000 * compScale * compScale * compQuality * compQuality;
+    const expectedPerPage = 0.035 * compMaxDim * compMaxDim * compQuality * compQuality;
 
     if (expectedPerPage > budgetPerPage) {
-      let bestScale = 1.2;
-      let bestQuality = 0.60;
+      let bestMaxDim = Math.min(nativeMaxDim, 1000);
+      let bestQuality = 0.50;
       let bestDiff = Infinity;
       
-      for (let s = activePreset.scale; s >= 1.0; s -= 0.1) {
-        let q = Math.sqrt(budgetPerPage / (55000 * s * s));
-        q = Math.max(0.45, Math.min(activePreset.quality, q));
+      for (let d = compMaxDim; d >= 350; d -= 50) {
+        let q = Math.sqrt(budgetPerPage / (0.035 * d * d));
+        q = Math.max(0.40, Math.min(activeConfig.quality, q));
         
-        const expected = 55000 * s * s * q * q;
+        const expected = 0.035 * d * d * q * q;
         if (expected <= budgetPerPage) {
           const diff = budgetPerPage - expected;
           if (diff < bestDiff) {
             bestDiff = diff;
-            bestScale = parseFloat(s.toFixed(2));
+            bestMaxDim = d;
             bestQuality = parseFloat(q.toFixed(2));
           }
         }
       }
-      compScale = bestScale;
+      compMaxDim = bestMaxDim;
       compQuality = bestQuality;
     }
   }
+
+  // Calculate actual scale to pass to pdfjs
+  const compScale = compMaxDim / nativeMaxDim;
 
   // Drag and drop event handlers
   const handleDragOver = (e: React.DragEvent) => {
@@ -218,6 +228,7 @@ export default function PdfCompressor() {
     setCompressedBlob(null);
     setCompressedSize(0);
     setTotalPages(0);
+    setNativeMaxDim(792);
 
     if (selectedFile.type !== "application/pdf" && !selectedFile.name.endsWith(".pdf")) {
       setError("Please upload a valid PDF document.");
@@ -234,6 +245,13 @@ export default function PdfCompressor() {
         const arrayBuffer = reader.result as ArrayBuffer;
         const pdfDoc = await pdfjs.getDocument({ data: arrayBuffer }).promise;
         setTotalPages(pdfDoc.numPages);
+        
+        if (pdfDoc.numPages > 0) {
+          const firstPage = await pdfDoc.getPage(1);
+          const firstViewport = firstPage.getViewport({ scale: 1.0 });
+          const maxDim = Math.max(firstViewport.width, firstViewport.height);
+          setNativeMaxDim(maxDim || 792);
+        }
       } catch (err) {
         console.error("Error reading pages count:", err);
         setError("Failed to count PDF pages. Please verify the document is not corrupted.");
@@ -348,10 +366,15 @@ export default function PdfCompressor() {
       console.error("Tracking error:", e);
     }
 
+    // Dynamic fallback check: If compression expanded the file, download original PDF instead to protect user bandwidth/storage.
+    const isExpanded = compressedSize >= file.size;
+    const finalBlob = isExpanded ? file : compressedBlob;
+    const suffix = isExpanded ? "_optimized.pdf" : "_compressed.pdf";
+
     const link = document.createElement("a");
-    link.href = URL.createObjectURL(compressedBlob);
+    link.href = URL.createObjectURL(finalBlob);
     const originalName = file.name.substring(0, file.name.lastIndexOf("."));
-    link.download = `${originalName}_compressed.pdf`;
+    link.download = `${originalName}${suffix}`;
     link.click();
   };
 
@@ -363,11 +386,12 @@ export default function PdfCompressor() {
     setProgressPage(0);
     setTotalPages(0);
     setTargetSizePreset("none");
+    setNativeMaxDim(792);
   };
 
   // Calculations for savings
   const expectedOutputSize = file && totalPages > 0
-    ? estimateCompressedSizeCustom(file.size, totalPages, compScale, compQuality)
+    ? estimateCompressedSizeCustom(totalPages, compMaxDim, compQuality)
     : 0;
 
   const sizeSavings = file && compressedSize > 0 
@@ -384,7 +408,26 @@ export default function PdfCompressor() {
     : targetSizePreset === "1mb" ? "1 MB" : targetSizePreset === "2mb" ? "2 MB" : "5 MB";
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} style={{ position: "relative" }}>
+      {/* Improvement Badge */}
+      <div 
+        style={{
+          position: "absolute",
+          top: "0.5rem",
+          right: "0.5rem",
+          fontSize: "0.7rem",
+          color: "var(--color-accent-light)",
+          background: "rgba(99, 102, 241, 0.08)",
+          border: "1px solid rgba(99, 102, 241, 0.2)",
+          padding: "0.25rem 0.6rem",
+          borderRadius: "9999px",
+          pointerEvents: "none",
+          fontWeight: "500"
+        }}
+      >
+        <span>This feature is still being improved</span>
+      </div>
+
       {/* Tool Header */}
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
         <div>
@@ -447,9 +490,8 @@ export default function PdfCompressor() {
                 <div className={styles.disclaimerBox} style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.25)", color: "#34d399" }}>
                   <Info className={styles.disclaimerIcon} size={18} style={{ color: "#34d399", marginTop: "2px" }} />
                   <div className={styles.disclaimerText}>
-                    <strong style={{ color: "white", display: "block", marginBottom: "0.25rem" }}>🔒 Privacy-First Local Compression</strong>
-                    To guarantee absolute privacy, your files are compressed entirely on your device and **never uploaded to any server**. 
-                    To achieve this local security, pages are compiled as high-fidelity visual layouts, making selectable text flat. This is ideal for presentations, scanned documents, and receipts, but not recommended for official legal contracts requiring selectable text.
+                    <strong style={{ color: "white", display: "block", marginBottom: "0.25rem" }}>🔒 Privacy First Local Compression</strong>
+                    Text becomes non-selectable, making it ideal for scans and presentations, but not formal documents.
                   </div>
                 </div>
 
@@ -472,8 +514,9 @@ export default function PdfCompressor() {
                         <span>Successfully reduced file size by {sizeSavings}%!</span>
                       </div>
                     ) : (
-                      <div className={styles.savingsCard} style={{ background: "rgba(239, 68, 68, 0.08)", border: "1px solid rgba(239, 68, 68, 0.25)", color: "#f87171" }}>
-                        <span>PDF is already fully optimized. Further compression did not reduce size.</span>
+                      <div className={styles.savingsCard} style={{ background: "rgba(239, 68, 68, 0.08)", border: "1px solid rgba(239, 68, 68, 0.25)", color: "#f87171", display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                        <AlertTriangle size={16} style={{ flexShrink: 0 }} />
+                        <span>PDF is already fully optimized. Original file will be returned on download to prevent size bloating.</span>
                       </div>
                     )}
                   </div>
@@ -625,7 +668,7 @@ export default function PdfCompressor() {
                   <div className={styles.presetInfo}>
                     <span className={styles.presetName}>Target-Optimized Profile (Active)</span>
                     <span className={styles.presetDesc}>
-                      Auto-tuned rendering resolution to <strong>{Math.round(targetScale * 100)}%</strong> and JPEG quality to <strong>{Math.round(targetQuality * 100)}%</strong> to fit under your {formattedLimitString} limit.
+                      Auto-tuned rendering resolution to <strong>{Math.round((targetMaxDim / nativeMaxDim) * 100)}%</strong> and JPEG quality to <strong>{Math.round(targetQuality * 100)}%</strong> to fit under your {formattedLimitString} limit.
                     </span>
                   </div>
                 </div>
@@ -680,8 +723,8 @@ export default function PdfCompressor() {
                   marginTop: "0.5rem"
                 }}>
                   <span>Profile: <strong>{targetSizeLimit > 0 ? "Target-Optimized" : activePreset.name.split(" ")[0]}</strong></span>
-                  <span>Estimated: ~<strong>{formatBytes(targetSizeLimit > 0 ? estimateCompressedSizeCustom(file.size, totalPages, targetScale, targetQuality) : estimateCompressedSizeCustom(file.size, totalPages, activePreset.scale, activePreset.quality))}</strong> ({
-                    Math.max(0, Math.round(((file.size - (targetSizeLimit > 0 ? estimateCompressedSizeCustom(file.size, totalPages, targetScale, targetQuality) : estimateCompressedSizeCustom(file.size, totalPages, activePreset.scale, activePreset.quality))) / file.size) * 100))
+                  <span>Estimated: ~<strong>{formatBytes(targetSizeLimit > 0 ? estimateCompressedSizeCustom(totalPages, targetMaxDim, targetQuality) : estimateCompressedSizeCustom(totalPages, activeConfig.maxDim, activeConfig.quality))}</strong> ({
+                    Math.max(0, Math.round(((file.size - (targetSizeLimit > 0 ? estimateCompressedSizeCustom(totalPages, targetMaxDim, targetQuality) : estimateCompressedSizeCustom(totalPages, activeConfig.maxDim, activeConfig.quality))) / file.size) * 100))
                   }%)</span>
                 </div>
               )}

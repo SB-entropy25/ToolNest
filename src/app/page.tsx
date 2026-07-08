@@ -7,7 +7,7 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace("/photo-booth");
+    router.replace("/bg-remover");
   }, [router]);
 
   return null;

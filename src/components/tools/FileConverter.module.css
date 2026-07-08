@@ -97,8 +97,8 @@
 }
 
 .uploadZone:hover {
-  border-color: var(--color-accent);
-  background: rgba(99, 102, 241, 0.03);
+  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .uploadZoneActive {
@@ -113,7 +113,7 @@
 }
 
 .uploadZone:hover .uploadIcon {
-  color: var(--color-accent-light);
+  color: #ffffff;
 }
 
 .uploadTitle {

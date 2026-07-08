@@ -65,8 +65,8 @@
 }
 
 .uploadZone:hover {
-  border-color: var(--color-accent);
-  background: rgba(99, 102, 241, 0.03);
+  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .uploadZoneActive {
@@ -81,7 +81,7 @@
 }
 
 .uploadZone:hover .uploadIcon {
-  color: var(--color-accent-light);
+  color: #ffffff;
 }
 
 .uploadTitle {
@@ -208,19 +208,19 @@
 }
 
 .presetCard:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: #ffffff;
 }
 
 .presetCardActive {
-  background: rgba(99, 102, 241, 0.08);
-  border-color: var(--color-accent);
-  box-shadow: 0 0 12px var(--color-accent-glow);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: #ffffff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.08);
 }
 
 .presetRadio {
   margin-top: 3px;
-  accent-color: var(--color-accent);
+  accent-color: #ffffff;
 }
 
 .presetInfo {

@@ -222,6 +222,14 @@ export default function PdfMerger() {
 
   return (
     <div className={styles.container}>
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileSelect}
+        accept=".pdf"
+        multiple
+        style={{ display: "none" }}
+      />
       <div className={styles.workspaceGrid}>
         {/* Workspace Panel */}
         <section className={`${styles.panel} glass-panel`}>
@@ -287,14 +295,6 @@ export default function PdfMerger() {
                 onDrop={handleDrop}
                 onClick={triggerUploadClick}
               >
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileSelect}
-                  accept=".pdf"
-                  multiple
-                  style={{ display: "none" }}
-                />
                 <Upload className={styles.uploadIcon} size={48} />
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
                   <p className={styles.uploadTitle}>Upload PDF Files</p>
@@ -383,8 +383,7 @@ export default function PdfMerger() {
             <div className={styles.disclaimerBox} style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.25)", color: "#34d399", marginTop: 0 }}>
               <Info className={styles.disclaimerIcon} size={18} style={{ color: "#34d399" }} />
               <div className={styles.disclaimerText}>
-                <strong style={{ color: "white", display: "block", marginBottom: "0.25rem" }}>🔒 100% In-Browser Merging</strong>
-                All page copying and output file compilations run entirely in your local browser sandbox. Your files are never sent to any server.
+                <strong style={{ color: "white", display: "block" }}>🔒 100% In-Browser Merging</strong>
               </div>
             </div>
 

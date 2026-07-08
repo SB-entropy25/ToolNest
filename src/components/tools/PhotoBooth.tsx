@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ShieldAlert, Image as ImageIcon, Sparkles, Sliders } from "lucide-react";
+import { Image as ImageIcon, Sparkles, Sliders } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
 import PhotoEditor from "@/components/PhotoEditor";
 import LayoutPreview from "@/components/LayoutPreview";
@@ -66,21 +66,6 @@ export default function PhotoBooth() {
           <p style={{ color: "var(--color-text-secondary)", fontSize: "0.95rem", margin: "0.25rem 0 0 0" }}>
             Align portrait to guidelines and generate printable 10x15 cm sheets.
           </p>
-        </div>
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "0.5rem",
-          background: "rgba(16, 185, 129, 0.08)",
-          border: "1px solid rgba(16, 185, 129, 0.15)",
-          color: "var(--color-success)",
-          padding: "0.4rem 0.8rem",
-          borderRadius: "9999px",
-          fontSize: "0.8rem",
-          fontWeight: "500"
-        }}>
-          <ShieldAlert size={14} />
-          <span>Processed 100% locally</span>
         </div>
       </div>
 

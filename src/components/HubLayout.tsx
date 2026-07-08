@@ -26,23 +26,18 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   // Active Tool state derived from URL path
-  const activeTool = pathname.split("/")[1] || "photo-booth";
+  const activeTool = pathname.split("/")[1] || "bg-remover";
 
   const tools: ToolItem[] = [
-    {
-      id: "photo-booth",
-      name: "Photo Booth",
-      icon: <Camera size={18} />,
-    },
     {
       id: "bg-remover",
       name: "BG Remover",
       icon: <Scissors size={18} />,
     },
     {
-      id: "pdf-compressor",
-      name: "PDF Compressor",
-      icon: <FileDown size={18} />,
+      id: "photo-booth",
+      name: "Photo Booth",
+      icon: <Camera size={18} />,
     },
     {
       id: "file-converter",
@@ -53,6 +48,11 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
       id: "pdf-merger",
       name: "PDF Merger",
       icon: <Layers size={18} />,
+    },
+    {
+      id: "pdf-compressor",
+      name: "PDF Compressor",
+      icon: <FileDown size={18} />,
     },
     {
       id: "about",

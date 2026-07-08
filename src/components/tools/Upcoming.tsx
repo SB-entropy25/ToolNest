@@ -84,7 +84,7 @@ export default function Upcoming() {
 
       <div className={styles.infoFooter}>
         <RefreshCw size={14} className={styles.spinIcon} />
-        <span>Roadmap updated weekly based on daily resolution resolutions.</span>
+        <span>Roadmap updated weekly based on suggestions.</span>
       </div>
     </div>
   );
