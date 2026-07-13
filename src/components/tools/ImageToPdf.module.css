@@ -1,0 +1,532 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.workspaceGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .workspaceGrid {
+    grid-template-columns: 340px 1fr;
+  }
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.panelTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.panelBody {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* File Drop Zone */
+.uploadZone {
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  padding: 3rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.01);
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.uploadZone:hover {
+  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.uploadZoneActive {
+  border-color: var(--color-accent-light);
+  background: rgba(99, 102, 241, 0.08);
+  transform: scale(1.01);
+}
+
+.uploadIcon {
+  color: var(--color-text-muted);
+  transition: color 0.2s;
+}
+
+.uploadZone:hover .uploadIcon {
+  color: #ffffff;
+}
+
+.uploadTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.uploadSubtitle {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Tab Layout Selector */
+.modeSelector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-sm);
+  padding: 0.2rem;
+  gap: 0.2rem;
+}
+
+.modeBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.modeBtnActive {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Control Options UI */
+.optionGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.optionLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.optionValue {
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.sliderInput {
+  width: 100%;
+  accent-color: #ffffff;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+  cursor: pointer;
+}
+
+.btnGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.secondaryBtn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  padding: 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.secondaryBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.secondaryBtnActive {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #ffffff;
+}
+
+.primaryBtn {
+  composes: accent-gradient from global;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #ffffff;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  box-shadow: var(--shadow-md);
+}
+
+.primaryBtn:hover {
+  opacity: 0.95;
+}
+
+.primaryBtnDisabled {
+  background: rgba(255, 255, 255, 0.03) !important;
+  color: var(--color-text-muted) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* visual canvas layout workspace */
+.workspace {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-sm);
+}
+
+.pageTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.paginationControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pageIndicator {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  min-width: 50px;
+  text-align: center;
+}
+
+.canvasWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  overflow: auto;
+  padding: 1.5rem;
+  background: #0a0d16;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+  min-height: 480px;
+  align-items: center;
+}
+
+.a4Page {
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+/* Portrait vs Landscape sizes */
+.a4Portrait {
+  width: 440px;
+  height: 622px; /* 1 : 1.414 aspect ratio */
+}
+
+.a4Landscape {
+  width: 622px;
+  height: 440px;
+}
+
+/* Grid layout slots */
+.gridLayout {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.gridCell {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  border: 1px dashed rgba(0, 0, 0, 0.08);
+}
+
+.gridImgFit {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.gridImgFill {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* Freeform draggable elements */
+.freeformElement {
+  position: absolute;
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+}
+
+.freeformImg {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  display: block;
+}
+
+.elementOutline {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border: 2px solid var(--color-accent);
+  pointer-events: none;
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+  border-radius: 4px;
+}
+
+.resizeHandle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #ffffff;
+  border: 2px solid var(--color-accent);
+  border-radius: 50%;
+  bottom: -8px;
+  right: -8px;
+  cursor: se-resize;
+  pointer-events: auto;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+  z-index: 100;
+}
+
+.elementDeleteBtn {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background: var(--color-danger);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
+  z-index: 100;
+  transition: transform 0.15s;
+}
+
+.elementDeleteBtn:hover {
+  transform: scale(1.15);
+}
+
+/* Queue List cards */
+.queueList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.queueItem {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.2s;
+}
+
+.queueItem:hover {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.queueThumb {
+  width: 42px;
+  height: 42px;
+  border-radius: 4px;
+  object-fit: cover;
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.queueDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.queueName {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queueSize {
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+}
+
+.queueActions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.actionIconBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionIconBtn:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.actionIconBtn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.errorBanner {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  color: #fca5a5;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Empty selection tip */
+.emptySelection {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 1.5rem 0;
+  border: 1px dashed rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-sm);
+}
+
+.helpCard {
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-sm);
+  padding: 0.8rem;
+}
+
+.helpTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.helpText {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  margin: 0;
+}

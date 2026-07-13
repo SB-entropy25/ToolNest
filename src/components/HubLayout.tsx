@@ -10,7 +10,8 @@ import {
   RefreshCw, 
   Layers, 
   Info, 
-  Calendar 
+  Calendar,
+  FileImage 
 } from "lucide-react";
 import styles from "@/app/page.module.css";
 
@@ -53,6 +54,11 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
       id: "pdf-compressor",
       name: "PDF Compressor",
       icon: <FileDown size={18} />,
+    },
+    {
+      id: "image-to-pdf",
+      name: "Image to PDF",
+      icon: <FileImage size={18} />,
     },
     {
       id: "about",
