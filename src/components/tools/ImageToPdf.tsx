@@ -77,8 +77,8 @@ export default function ImageToPdf() {
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
 
   // Pointer event tracking for canvas dragging/resizing
-  const [isDraggingElement, setIsDraggingElement] = useState(false);
-  const [isResizingElement, setIsResizingElement] = useState(false);
+  const isDraggingRef = useRef(false);
+  const isResizingRef = useRef(false);
   const dragStartRef = useRef({ pointerX: 0, pointerY: 0, elemX: 0, elemY: 0, elemW: 0, elemH: 0 });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -148,8 +148,8 @@ export default function ImageToPdf() {
       return;
     }
 
-    if (images.length + validImages.length > 15) {
-      setError("You can compile a maximum of 15 photos in a PDF.");
+    if (images.length + validImages.length > 40) {
+      setError("You can compile a maximum of 40 photos in a PDF.");
       return;
     }
 
@@ -276,11 +276,11 @@ export default function ImageToPdf() {
 
   // Drag interaction handlers
   const handleElementPointerDown = (e: React.PointerEvent, id: string) => {
-    if (isResizingElement) return;
+    if (isResizingRef.current) return;
     
     e.preventDefault();
     setSelectedElementId(id);
-    setIsDraggingElement(true);
+    isDraggingRef.current = true;
     
     const elem = images.find(img => img.id === id);
     if (!elem) return;
@@ -299,7 +299,7 @@ export default function ImageToPdf() {
   };
 
   const handleElementPointerMove = (e: React.PointerEvent, id: string) => {
-    if (!isDraggingElement) return;
+    if (!isDraggingRef.current) return;
     e.preventDefault();
 
     const elem = images.find(img => img.id === id);
@@ -324,7 +324,7 @@ export default function ImageToPdf() {
   };
 
   const handleElementPointerUp = (e: React.PointerEvent, id: string) => {
-    setIsDraggingElement(false);
+    isDraggingRef.current = false;
     try {
       const element = e.currentTarget as HTMLElement;
       element.releasePointerCapture(e.pointerId);
@@ -335,7 +335,7 @@ export default function ImageToPdf() {
   const handleResizePointerDown = (e: React.PointerEvent, id: string) => {
     e.stopPropagation();
     e.preventDefault();
-    setIsResizingElement(true);
+    isResizingRef.current = true;
 
     const elem = images.find(img => img.id === id);
     if (!elem) return;
@@ -354,7 +354,7 @@ export default function ImageToPdf() {
   };
 
   const handleResizePointerMove = (e: React.PointerEvent, id: string) => {
-    if (!isResizingElement) return;
+    if (!isResizingRef.current) return;
     e.stopPropagation();
     e.preventDefault();
 
@@ -383,7 +383,7 @@ export default function ImageToPdf() {
   };
 
   const handleResizePointerUp = (e: React.PointerEvent, id: string) => {
-    setIsResizingElement(false);
+    isResizingRef.current = false;
     try {
       const target = e.currentTarget as HTMLElement;
       target.releasePointerCapture(e.pointerId);
@@ -1145,10 +1145,10 @@ export default function ImageToPdf() {
               <div className={`${styles.panel} glass-panel`} style={{ width: "100%" }}>
                 <div className={styles.panelHeader} style={{ margin: 0, padding: "1rem 1rem 0.5rem 1rem" }}>
                   <span className={styles.panelTitle} style={{ fontSize: "0.85rem" }}>
-                    Image Queue ({images.length} / 15)
+                    Image Queue ({images.length} / 40)
                   </span>
                   
-                  {images.length < 15 && (
+                  {images.length < 40 && (
                     <button 
                       type="button" 
                       className={styles.secondaryBtn}
@@ -1231,10 +1231,10 @@ export default function ImageToPdf() {
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
                     <p className={styles.uploadTitle}>Upload Photos to Compile</p>
                     <p className={styles.uploadSubtitle}>
-                      Drag & drop up to 15 images here, or click to browse
+                      Drag & drop up to 40 images here, or click to browse
                     </p>
                     <p style={{ fontSize: "0.7rem", color: "var(--color-text-muted)", marginTop: "0.5rem" }}>
-                      Supports PNG, JPG/JPEG, WebP • Max 15 files • Processed entirely locally
+                      Supports PNG, JPG/JPEG, WebP • Max 40 files • Processed entirely locally
                     </p>
                   </div>
                 </div>
